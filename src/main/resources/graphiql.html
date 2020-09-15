@@ -19,7 +19,7 @@
     #graphiql {
       height: 100vh;
     }
-    #tenant-form {
+    #token-form {
       position: absolute;
       top: 15px;
       right: 100px;
@@ -48,7 +48,7 @@
 
 </head>
 <body>
-<div id="tenant-form" style="display:flex; flex-direction: row; font-weight: bold;">
+<div id="token-form" style="display:flex; flex-direction: row; font-weight: bold;">
   <div>
     <label for="token">Token:</label>
     <input type="text" id="token" value="token" />
@@ -131,7 +131,7 @@
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        'Authorization': token,
       },
       body: JSON.stringify(graphQLParams),
       credentials: 'include',

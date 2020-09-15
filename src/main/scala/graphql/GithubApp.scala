@@ -5,6 +5,7 @@ import caliban.schema.GenericSchema
 import caliban.{Http4sAdapter, RootResolver}
 import cats.data.Kleisli
 import cats.effect.Blocker
+import graphql.Auth.Auth
 import org.http4s.{HttpRoutes, StaticFile}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.implicits._
@@ -21,18 +22,6 @@ import scala.concurrent.ExecutionContext
 
 object GithubApp extends CatsApp {
 
-  // Simple service that returns the token coming from the request
-  type Auth = Has[Auth.Service]
-  object Auth {
-    trait Service {
-      def token: Option[String]
-    }
-
-    def fromToken(_token: Option[String]): Service =
-      new Service {
-        override def token: Option[String] = _token
-      }
-  }
   type AuthTask[A] = RIO[Auth, A]
 
   case class MissingToken() extends Throwable
