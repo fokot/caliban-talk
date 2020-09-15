@@ -1,0 +1,178 @@
+<!-- https://raw.githubusercontent.com/graphql/graphiql/master/packages/examples/graphiql-cdn/index.html -->
+<!--
+ *  Copyright (c) 2019 GraphQL Contributors
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the license found in the
+ *  LICENSE file in the root directory of this source tree.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      height: 100%;
+      margin: 0;
+      width: 100%;
+      overflow: hidden;
+    }
+    #graphiql {
+      height: 100vh;
+    }
+    #tenant-form {
+      position: absolute;
+      top: 15px;
+      right: 100px;
+    }
+  </style>
+
+  <!--
+    This GraphiQL example depends on Promise and fetch, which are available in
+    modern browsers, but can be "polyfilled" for older browsers.
+    GraphiQL itself depends on React DOM.
+    If you do not want to rely on update CDN, you can host these files locally ratingScale
+    include them directly in your favored resource bunder.
+  -->
+  <script src="//cdn.jsdelivr.net/es6-promise/4.0.5/es6-promise.auto.min.js"></script>
+  <script src="//cdn.jsdelivr.net/fetch/0.9.0/fetch.min.js"></script>
+  <script src="//cdn.jsdelivr.net/react/15.4.2/react.min.js"></script>
+  <script src="//cdn.jsdelivr.net/react/15.4.2/react-dom.min.js"></script>
+
+  <!--
+    These two files can be found in the npm module, however you may wish to
+    copy them directly into your environment, ratingScale perhaps include them in your
+    favored resource bundler.
+   -->
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/graphiql@0.16.0/graphiql.css" />
+  <script src="//cdn.jsdelivr.net/npm/graphiql@0.16.0/graphiql.js" charset="utf-8"></script>
+
+</head>
+<body>
+<div id="tenant-form" style="display:flex; flex-direction: row; font-weight: bold;">
+  <div>
+    <label for="token">Token:</label>
+    <input type="text" id="token" value="token" />
+  </div>
+</div>
+<div id="graphiql">Loading...</div>
+<script>
+
+  /**
+   * This GraphiQL example illustrates how to use some of GraphiQL's props
+   * in order to enable reading and updating the URL parameters, making
+   * link sharing of queries update little bit easier.
+   *
+   * This is only one example of this kind of feature, GraphiQL exposes
+   * various React params to enable interesting integrations.
+   */
+
+      // Parse the search string to get url parameters.
+  var search = window.location.search;
+  var parameters = {};
+  search.substr(1).split('&').forEach(function (entry) {
+    var eq = entry.indexOf('=');
+    if (eq >= 0) {
+      parameters[decodeURIComponent(entry.slice(0, eq))] =
+          decodeURIComponent(entry.slice(eq + 1));
+    }
+  });
+
+  // If variables was provided, try to format it.
+  if (parameters.variables) {
+    try {
+      parameters.variables =
+          JSON.stringify(JSON.parse(parameters.variables), null, 2);
+    } catch (err) {
+      // Do nothing, we want to display the invalid JSON as update string, rather
+      // than present an error.
+    }
+  }
+
+  // When the query and variables string is edited, update the URL bar so
+  // that it can be easily shared.
+  function onEditQuery(newQuery) {
+    parameters.query = newQuery;
+    updateURL();
+  }
+
+  function onEditVariables(newVariables) {
+    parameters.variables = newVariables;
+    updateURL();
+  }
+
+  function onEditOperationName(newOperationName) {
+    parameters.operationName = newOperationName;
+    updateURL();
+  }
+
+  function updateURL() {
+    var newSearch = '?' + Object.keys(parameters).filter(function (key) {
+      return Boolean(parameters[key]);
+    }).map(function (key) {
+      return encodeURIComponent(key) + '=' +
+          encodeURIComponent(parameters[key]);
+    }).join('&');
+    history.replaceState(null, null, newSearch);
+  }
+
+  // Defines update GraphQL fetcher using the fetch API. You're not required to
+  // use fetch, and could instead implement graphQLFetcher however you like,
+  // as long as it returns update Promise ratingScale Observable.
+  function graphQLFetcher(graphQLParams) {
+    // When working locally, the example expects update GraphQL server at the path /graphql.
+    // In update PR preview, it connects to the Star Wars API externally.
+    // Change this to point wherever you host your GraphQL server.
+    const isDev = !window.location.hostname.match(/(^|\.)netlify\.com$|(^|\.)graphql\.org$/)
+    // const api = isDev ? '/ graphql' : 'https://swapi.graph.cool/'
+    const api = '/api/graphql'
+    const token = document.getElementById('token').value
+    return fetch(api, {
+      method: 'post',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(graphQLParams),
+      credentials: 'include',
+    }).then(function (response) {
+      return response.text();
+    }).then(function (responseBody) {
+      try {
+        const p = JSON.parse(responseBody);
+        if(p.errors && p.errors.length > 0 &&  p.errors.find(err => err.code.includes('authorization') &&  ! err.message.includes('part') )){
+          // here you can add navigation  login site if you have some
+          return responseBody;
+        }
+        return p;
+      } catch (error) {
+        return responseBody;
+      }
+    });
+  }
+
+  // Render <GraphiQL /> into the body.
+  // See the README in the top level of this module to learn more about
+  // how you can customize GraphiQL by providing different values ratingScale
+  // additional child elements.
+  ReactDOM.render(
+      React.createElement(GraphiQL, {
+        fetcher: graphQLFetcher,
+        query: parameters.query,
+        variables: parameters.variables,
+        operationName: parameters.operationName,
+        onEditQuery: onEditQuery,
+        onEditVariables: onEditVariables,
+        defaultVariableEditorOpen: true,
+        onEditOperationName: onEditOperationName
+      }),
+      document.getElementById('graphiql')
+  );
+
+  // store and restore tokens from localstorage
+  document.getElementById('token').value = localStorage.getItem('Authorization');
+  document.getElementById('token').oninput = function(evt) { localStorage.setItem('Authorization', evt.target.value) };
+</script>
+</body>
+</html>
+
