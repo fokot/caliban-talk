@@ -6,6 +6,9 @@ ThisBuild / organizationName := "example"
 val circeVersion = "0.13.0"
 val doobieVersion = "0.9.2"
 val calibanVersion = "0.9.2"
+val sttpVersion = "2.2.7"
+
+enablePlugins(CodegenPlugin)
 
 lazy val root = (project in file("."))
   .settings(
@@ -15,13 +18,17 @@ lazy val root = (project in file("."))
       "dev.zio" %% "zio-interop-cats" % "2.1.4.0",
       "com.github.ghostdogpr" %% "caliban" % calibanVersion,
       "com.github.ghostdogpr" %% "caliban-http4s" % calibanVersion,
+      "com.github.ghostdogpr" %% "caliban-client" % calibanVersion,
       "io.circe" %% "circe-core" % circeVersion,
       "io.circe" %% "circe-parser" % circeVersion,
       "io.circe" %% "circe-generic" % circeVersion,
       "org.tpolecat" %% "doobie-core" % doobieVersion,
       "org.tpolecat" %% "doobie-postgres" % doobieVersion,
       "org.tpolecat" %% "doobie-postgres-circe" % doobieVersion,
-      "org.tpolecat" %% "doobie-hikari" % doobieVersion
+      "org.tpolecat" %% "doobie-hikari" % doobieVersion,
+      "com.softwaremill.sttp.client" %% "core" % sttpVersion,
+      "com.softwaremill.sttp.client" %% "async-http-client-backend-zio" % sttpVersion,
+      "com.softwaremill.sttp.client" %% "circe" % sttpVersion
       )
   )
 
