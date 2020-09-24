@@ -2,19 +2,30 @@ package graphql
 
 import caliban.GraphQL.graphQL
 import caliban.RootResolver
-import caliban.schema.GenericSchema
+import caliban.schema.{ArgBuilder, GenericSchema}
 import graphql.schema.{Env, Mutation, Query, Subscription}
 import graphql.Auth.Auth
+import graphql.storage.{RepoId, UserId}
 import zio.{Schedule, ZIO}
 import zio.clock.Clock
 import zio.duration._
 import zio.stream.ZStream
+
 
 object resolver {
 
   // our GraphQL API
   private val schema: GenericSchema[Env] = new GenericSchema[Env] {}
   import schema._
+
+  private def tagSchema[A, B <: A](implicit s: schema.Typeclass[A]): schema.Typeclass[B] = s.asInstanceOf[schema.Typeclass[B]]
+  private def tagArgBuilder[A, B <: A](implicit s: ArgBuilder[A]): ArgBuilder[B] = s.asInstanceOf[ArgBuilder[B]]
+
+  implicit private val schemaUserId = tagSchema[String, UserId]
+  implicit private val argBuilderUserId = tagArgBuilder[String, UserId]
+
+  implicit private val schemaRepoId = tagSchema[String, RepoId]
+  implicit private val argBuilderRepoId = tagArgBuilder[String, RepoId]
 
   private val query =
     Query(

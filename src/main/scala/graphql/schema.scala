@@ -1,6 +1,7 @@
 package graphql
 
 import graphql.Auth.Auth
+import graphql.storage.{RepoId, UserId}
 import zio.clock.Clock
 import zio.stream.ZStream
 import zio.{RIO, Task}
@@ -34,22 +35,23 @@ object schema {
   )
 
   case class RepoArgs(
-    owner: String,
+    owner: UserId,
     name: String,
   )
 
   case class User(
-    id: String,
+    id: UserId,
     login: String,
     name: String,
     repos: Task[List[Repo]]
   )
 
   case class Repo(
-    id: String,
+    id: RepoId,
     name: String,
     nameWithOwner: String,
     owner: Task[User],
+    forkCount: Task[Int],
     forks: Task[List[Repo]]
   )
 
