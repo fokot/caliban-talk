@@ -3,14 +3,14 @@ package graphql
 import cats.effect.Blocker
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import doobie.hikari.HikariTransactor
-import doobie.util.transactor.Transactor
+import doobie.util.transactor.{Transactor => DoobieTransactor}
 import zio.blocking.Blocking
 import zio.interop.catz._
 import zio.{Has, Task, UIO, ZIO, ZLayer}
 
 final case class DbCfg(schema: String, url: String, username: String, password: String)
 
-object TransactorFactory {
+object Transactor {
 
   def hikariConfig(c: DbCfg): HikariConfig = {
     val cfg = new HikariConfig()
@@ -24,7 +24,7 @@ object TransactorFactory {
   }
 
   type DataSourceService = Has[HikariDataSource]
-  type TransactorService = Has[Transactor[Task]]
+  type TransactorService = Has[DoobieTransactor[Task]]
 
   def hikariDataSourceLayer: ZLayer[Has[DbCfg], Throwable, DataSourceService] =
     ZLayer.fromAcquireRelease(ZIO.access[Has[DbCfg]](_.get).flatMap(cfg => ZIO.effect(new HikariDataSource(hikariConfig(cfg)))))(

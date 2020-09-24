@@ -10,6 +10,8 @@ val sttpVersion = "2.2.7"
 
 enablePlugins(CodegenPlugin)
 
+addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full)
+
 lazy val root = (project in file("."))
   .settings(
     name := "caliban-talk",
@@ -26,6 +28,7 @@ lazy val root = (project in file("."))
       "org.tpolecat" %% "doobie-postgres" % doobieVersion,
       "org.tpolecat" %% "doobie-postgres-circe" % doobieVersion,
       "org.tpolecat" %% "doobie-hikari" % doobieVersion,
+      "org.tpolecat" %% "doobie-quill" % doobieVersion,
       "com.softwaremill.sttp.client" %% "core" % sttpVersion,
       "com.softwaremill.sttp.client" %% "async-http-client-backend-zio" % sttpVersion,
       "com.softwaremill.sttp.client" %% "circe" % sttpVersion

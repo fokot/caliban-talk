@@ -14,9 +14,9 @@ object Auth {
     case object VIEWER extends Role
   }
 
-  case class User(name: String, roles: List[Role])
+  case class AuthUser(name: String, roles: List[Role])
 
-  type Authorized = RIO[Auth, User]
+  type Authorized = RIO[Auth, AuthUser]
 
   val isAuthenticated: Authorized = ZIO.accessM[Auth](r => ZIO.getOrFail(r.get.user))
 
@@ -34,12 +34,12 @@ object Auth {
 
   trait Service {
     def token: Option[String]
-    def user: Option[User]
+    def user: Option[AuthUser]
   }
 
   def fromToken(_token: Option[String]): Service =
     new Service {
       override def token: Option[String] = _token
-      override val user: Option[User] = token.flatMap(io.circe.parser.parse(_).flatMap(_.as[User]).toOption)
+      override val user: Option[AuthUser] = token.flatMap(io.circe.parser.parse(_).flatMap(_.as[AuthUser]).toOption)
     }
 }

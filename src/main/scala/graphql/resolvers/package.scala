@@ -5,17 +5,20 @@ import caliban.RootResolver
 import caliban.schema.{ArgBuilder, GenericSchema}
 import graphql.schema.{Env, Mutation, Query, Subscription}
 import graphql.Auth.Auth
+import graphql.resolvers.{GRepo, GUser}
 import graphql.storage.{RepoId, UserId}
 import zio.{Schedule, ZIO}
-import zio.clock.Clock
 import zio.duration._
 import zio.stream.ZStream
 
 
-object resolver {
+package object resolver {
 
   // our GraphQL API
-  private val schema: GenericSchema[Env] = new GenericSchema[Env] {}
+  private val schema: GenericSchema[Env] = new GenericSchema[Env] {
+    // otherwise `Input type names` will have `Input` after case class name
+    override def customizeInputTypeName(name: String): String = name
+  }
   import schema._
 
   private def tagSchema[A, B <: A](implicit s: schema.Typeclass[A]): schema.Typeclass[B] = s.asInstanceOf[schema.Typeclass[B]]
@@ -30,18 +33,21 @@ object resolver {
   private val query =
     Query(
       ZIO.access[Auth](_.get[Auth.Service].token.getOrElse("")),
-      _ => ZIO.succeed(???),
-      _ => ZIO.succeed(???),
+      in => GUser.get(in),
+      in => GRepo.get(in),
       ZIO.succeed(???)
     )
 
   private val mutation = Mutation(
-    ZIO.succeed("aa")
+    _ => ZIO.succeed(???),
+    _ => ZIO.succeed(???),
+    _ => ZIO.succeed(???),
+    _ => ZIO.succeed(???),
   )
 
   private val subscription = Subscription(
     ZStream.succeed("Asdf").repeat(Schedule.spaced(1.second))
-//      ZStream.unfold(1)(i => Some((i.toString, i + 1)))
+    //      ZStream.unfold(1)(i => Some((i.toString, i + 1)))
   )
 
   val api = graphQL(RootResolver(query, mutation, subscription))
