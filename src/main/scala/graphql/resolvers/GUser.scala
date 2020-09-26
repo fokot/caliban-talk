@@ -1,9 +1,11 @@
 package graphql.resolvers
 
-import graphql.schema.{R, User, UserInput}
+import graphql.resolver.RequestId
+import graphql.schema.{Env, Q, R, User, UserInput}
 import graphql.storage
-import graphql.storage.UserStorage
-import zio.ZIO
+import graphql.storage.{UserId, UserStorage}
+import zio.{Chunk, ZIO}
+import zio.query.{DataSource, ZQuery}
 
 object GUser {
 
@@ -11,10 +13,22 @@ object GUser {
     r.id,
     r.login,
     r.name,
-    ZIO.succeed(Nil)
+    GRepo.forUser(r.id)
   )
 
   def get(in: UserInput): R[User] =
     storage.getUserByLogin(in.login).map(toGQL)
+
+
+  val dataSource: DataSource[Env, RequestId[UserId, UserStorage]] =
+    DataSource.fromFunctionBatchedWithM("user-by-id")(
+      requests => storage.getUsers(requests.map(_.id).toList).tap(a => ZIO.effect(println(a.toString))).map(Chunk.fromIterable),
+      (u: UserStorage) =>
+        RequestId(u.id)
+    )
+
+
+  def byId(id: UserId): Q[User] =
+    ZQuery.fromRequest(RequestId[UserId, UserStorage](id))(dataSource).map(toGQL)
 
 }

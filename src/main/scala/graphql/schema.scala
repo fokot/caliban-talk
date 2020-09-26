@@ -11,6 +11,7 @@ import graphql.resolvers.mutations.GMutateUser.MutateUserOutput
 import graphql.storage.{RepoId, UserId}
 import zio.clock.Clock
 import zio.console.Console
+import zio.query.ZQuery
 import zio.stream.ZStream
 import zio.{RIO, Task}
 
@@ -19,6 +20,8 @@ object schema {
   type Env = Auth with Clock with TransactorService with Console
 
   type R[A] = RIO[Env, A]
+
+  type Q[A] = ZQuery[Env, Throwable, A]
 
   type RStream[A] = ZStream[Env, Throwable, A]
 
@@ -47,7 +50,7 @@ object schema {
   )
 
   case class RepoInput(
-    owner: UserId,
+    owner: String,
     name: String,
   )
 
@@ -55,16 +58,16 @@ object schema {
     id: UserId,
     login: String,
     name: Option[String],
-    repos: Task[List[Repo]]
+    repos: R[List[Repo]]
   )
 
   case class Repo(
     id: RepoId,
     name: String,
     nameWithOwner: String,
-    owner: Task[User],
-    forkCount: Task[Int],
-    forks: Task[List[Repo]]
+    owner: Q[User],
+    forkCount: R[Int],
+    forks: R[List[Repo]]
   )
 
 }

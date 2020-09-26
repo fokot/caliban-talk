@@ -32,8 +32,13 @@ object storage {
 
   case class ForkStorage(
     origin: RepoId,
-    name: RepoId
+    fork: RepoId
   )
+
+  implicit class Untagged[A](a: A) {
+    def tag[T]: A @@ T = shapeless.tag[T][A](a)
+  }
+
 
   private def taggedTypeEncoder[A, B] = getquill.MappedEncoding[B @@ A, B](identity)
   private def taggedTypeDecoder[A, B] = getquill.MappedEncoding[A, A @@ B](tag[B][A])
@@ -60,6 +65,13 @@ object storage {
     }
   }
 
+  implicit class ConnectionIOOps[A](c: ConnectionIO[Long]) {
+    def single(e: => Exception): ConnectionIO[Unit] = c.flatMap {
+      case 1L => Monad[ConnectionIO].pure(())
+      case _ => MonadError[ConnectionIO, Throwable].raiseError(e)
+    }
+  }
+
   def transact[A](c: ConnectionIO[A]): RIO[TransactorService, A] =
     ZIO.accessM[TransactorService](r => c.transact(r.get))
 
@@ -78,7 +90,115 @@ object storage {
       ).single(new Exception(s"Not single user for login: $login"))
     )
 
+  def getUsers(ids: List[UserId]): R[List[UserStorage]] =
+    transact(
+      run (
+        quote(
+          query[UserStorage].filter(u => lift(ids).contains(u.id))
+        )
+      )
+    )
 
+  def getRepo(owner: String, name: String): R[RepoStorage] =
+    transact(
+      run (
+        quote(
+          query[RepoStorage].join(query[UserStorage]).on(
+            (r, u) => r.owner == u.id && u.login == lift(owner) && r.name == lift(name)
+          ).map(_._1)
+        )
+      ).single(new Exception(s"Not single repo for owner: $owner, name: $name"))
+    )
+
+  def getRepo(id: RepoId): R[RepoStorage] =
+    transact(
+      run (
+        quote(
+          query[RepoStorage].filter(_.id == lift(id))
+        )
+      ).single(new Exception(s"Not single repo for id: $id"))
+    )
+
+  def getRepos(owner: String): R[List[RepoStorage]] =
+    transact(
+      run (
+        quote(
+          query[RepoStorage].filter(r => r.owner == lift(owner))
+        )
+      )
+    )
+
+  def getAllRepos: R[List[RepoStorage]] =
+    transact(
+      run (
+        quote(
+          query[RepoStorage]
+        )
+      )
+    )
+
+  def getForksOf(owner: RepoId): R[List[RepoStorage]] =
+    transact(
+      run (
+        quote(
+          query[RepoStorage].join(query[ForkStorage]).on((r, f) => r.id == f.fork && f.origin == lift(owner)).map(_._1)
+        )
+      )
+    )
+
+  def createUser(user: UserStorage): RIO[TransactorService, UserId] =
+    transact(
+      run (
+        quote(
+          query[UserStorage].insert(lift(user)).returningGenerated(_.id)
+        )
+      )
+    )
+
+  def updateUser(user: UserStorage): RIO[TransactorService, Unit] =
+    transact(
+      run (
+        quote(
+          query[UserStorage].filter(_.id == lift(user.id)).update(lift(user))
+        )
+      ).single(new Exception(s"No user with id ${user.id}"))
+    )
+
+  def createRepo(repo: RepoStorage): RIO[TransactorService, RepoId] =
+    transact(
+      run (
+        quote(
+          query[RepoStorage].insert(lift(repo)).returningGenerated(_.id)
+        )
+      )
+    )
+
+  def updateRepo(repo: RepoStorage): RIO[TransactorService, Unit] =
+    transact(
+      run (
+        quote(
+          query[RepoStorage].filter(_.id == lift(repo.id)).update(lift(repo))
+        )
+      ).single(new Exception(s"No repo with id ${repo.id}"))
+    )
+
+  def createFork(fork: ForkStorage): RIO[TransactorService, Unit] =
+    transact(
+      run (
+        quote(
+          query[ForkStorage].insert(lift(fork))
+        )
+      )
+    ).unit
+
+  def deleteFork(fork: ForkStorage): RIO[TransactorService, Unit] =
+    transact(
+      run (
+        quote(
+          query[ForkStorage].filter(f => f.origin == lift(fork.origin) && f.fork == lift(fork.fork)).delete
+        )
+      ).single(new Exception(s"No fork with origin ${fork.origin} and fork ${fork.fork}"))
+    )
 
 
 }

@@ -5,14 +5,18 @@ import caliban.RootResolver
 import caliban.schema.{ArgBuilder, GenericSchema}
 import graphql.schema.{Env, Mutation, Query, Subscription}
 import graphql.Auth.Auth
+import graphql.resolvers.mutations.{GCreateFork, GDeleteFork, GMutateRepo, GMutateUser}
 import graphql.resolvers.{GRepo, GUser}
 import graphql.storage.{RepoId, UserId}
 import zio.{Schedule, ZIO}
 import zio.duration._
+import zio.query.Request
 import zio.stream.ZStream
 
 
 package object resolver {
+
+  case class RequestId[ID, A](id: ID) extends Request[Nothing, A]
 
   // our GraphQL API
   private val schema: GenericSchema[Env] = new GenericSchema[Env] {
@@ -35,14 +39,14 @@ package object resolver {
       ZIO.access[Auth](_.get[Auth.Service].token.getOrElse("")),
       in => GUser.get(in),
       in => GRepo.get(in),
-      ZIO.succeed(???)
+      GRepo.all,
     )
 
   private val mutation = Mutation(
-    _ => ZIO.succeed(???),
-    _ => ZIO.succeed(???),
-    _ => ZIO.succeed(???),
-    _ => ZIO.succeed(???),
+    in => GMutateUser.mutate(in.in),
+    in => GMutateRepo.mutate(in.in),
+    in => GCreateFork.mutate(in.in),
+    in => GDeleteFork.mutate(in.in),
   )
 
   private val subscription = Subscription(
