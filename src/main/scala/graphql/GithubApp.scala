@@ -54,8 +54,7 @@ object GithubApp extends CatsApp {
   )  }
 
   val customLayer: ZLayer[Blocking, Throwable, Config with TransactorService] =
-    configuration.live ++ ZLayer.identity[Blocking] >+>
-      (configuration.focus(_.db) ++ ZLayer.identity[Blocking] >>> Transactor.transactorLayer)
+    ZLayer.identity[Blocking] ++ configuration.live >+> configuration.focus(_.db) >+> Transactor.transactorLayer
 
   override def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] =
     ZIO
