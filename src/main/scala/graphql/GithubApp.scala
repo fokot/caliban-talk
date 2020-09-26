@@ -21,12 +21,13 @@ import zio.clock.Clock
 import zio.console.Console
 import zio.interop.catz._
 import zio.interop.catz.implicits._
+import zio.random.Random
 
 import scala.concurrent.ExecutionContext
 
 object GithubApp extends CatsApp {
 
-  type F[A] = RIO[Clock with TransactorService with Console, A]
+  type F[A] = RIO[Clock with TransactorService with Console with Random, A]
   type AuthTask[A] = RIO[Env, A]
 
   case class MissingToken() extends Throwable
@@ -34,7 +35,7 @@ object GithubApp extends CatsApp {
   // http4s middleware that extracts a token from the request and eliminate the Auth layer dependency
   object AuthMiddleware {
     def apply(route: HttpRoutes[AuthTask]): HttpRoutes[F] =
-      Http4sAdapter.provideSomeLayerFromRequest[Clock with TransactorService with Console, Auth](
+      Http4sAdapter.provideSomeLayerFromRequest[Clock with TransactorService with Console with Random, Auth](
         route,
         req =>
           ZLayer.succeed(Auth.fromToken(req.headers.get(CaseInsensitiveString("Authorization")).map(_.value)))

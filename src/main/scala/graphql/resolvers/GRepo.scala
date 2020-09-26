@@ -12,7 +12,7 @@ object GRepo {
       Repo(
         r.id,
         r.name,
-        r.owner + "/" + r.name,
+        GUser.byId(r.owner).map(_.login + "/" + r.name),
         GUser.byId(r.owner),
         forks.map(_.size),
         forks.flatMap(ZIO.foreach(_)(toGQL))

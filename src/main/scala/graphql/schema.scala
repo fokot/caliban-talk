@@ -12,12 +12,13 @@ import graphql.storage.{RepoId, UserId}
 import zio.clock.Clock
 import zio.console.Console
 import zio.query.ZQuery
+import zio.random.Random
 import zio.stream.ZStream
 import zio.{RIO, Task}
 
 object schema {
 
-  type Env = Auth with Clock with TransactorService with Console
+  type Env = Auth with Clock with TransactorService with Console with Random
 
   type R[A] = RIO[Env, A]
 
@@ -42,7 +43,7 @@ object schema {
   )
 
   case class Subscription(
-    repoOfASecond: RStream[String]
+    repoOfASecond: RStream[Repo]
   )
 
   case class UserInput(
@@ -64,7 +65,7 @@ object schema {
   case class Repo(
     id: RepoId,
     name: String,
-    nameWithOwner: String,
+    nameWithOwner: Q[String],
     owner: Q[User],
     forkCount: R[Int],
     forks: R[List[Repo]]

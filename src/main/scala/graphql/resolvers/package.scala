@@ -8,7 +8,7 @@ import graphql.Auth.Auth
 import graphql.resolvers.mutations.{GCreateFork, GDeleteFork, GMutateRepo, GMutateUser}
 import graphql.resolvers.{GRepo, GUser}
 import graphql.storage.{RepoId, UserId}
-import zio.{Schedule, ZIO}
+import zio.{Schedule, ZIO, random}
 import zio.duration._
 import zio.query.Request
 import zio.stream.ZStream
@@ -50,8 +50,13 @@ package object resolver {
   )
 
   private val subscription = Subscription(
-    ZStream.succeed("Asdf").repeat(Schedule.spaced(1.second))
-    //      ZStream.unfold(1)(i => Some((i.toString, i + 1)))
+    ZStream.fromEffect(
+      for {
+        repos <- storage.getAllRepos
+        r <- random.nextIntBounded(repos.length)
+        repo <- GRepo.toGQL(repos(r))
+      } yield repo
+    ).repeat(Schedule.spaced(1.second))
   )
 
   val api = graphQL(RootResolver(query, mutation, subscription))

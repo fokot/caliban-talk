@@ -22,7 +22,7 @@ object GUser {
 
   val dataSource: DataSource[Env, RequestId[UserId, UserStorage]] =
     DataSource.fromFunctionBatchedWithM("user-by-id")(
-      requests => storage.getUsers(requests.map(_.id).toList).tap(a => ZIO.effect(println(a.toString))).map(Chunk.fromIterable),
+      requests => storage.getUsers(requests.map(_.id).toList).map(Chunk.fromIterable),
       (u: UserStorage) =>
         RequestId(u.id)
     )

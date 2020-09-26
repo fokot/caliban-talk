@@ -90,7 +90,16 @@ object storage {
       ).single(new Exception(s"Not single user for login: $login"))
     )
 
-  def getUsers(ids: List[UserId]): R[List[UserStorage]] =
+  def getUser(id: UserId): R[UserStorage] =
+    transact(
+      run (
+        quote(
+          query[UserStorage].filter(_.id == lift(id))
+        )
+      ).single(new Exception(s"Not single user for id: $id"))
+    )
+
+  def getUsers(ids: List[UserId]): R[List[UserStorage]] = {
     transact(
       run (
         quote(
@@ -98,6 +107,7 @@ object storage {
         )
       )
     )
+  }
 
   def getRepo(owner: String, name: String): R[RepoStorage] =
     transact(
