@@ -6,10 +6,12 @@ import sttp.client.UriContext
 import sttp.client.asynchttpclient.zio.AsyncHttpClientZioBackend
 import zio._
 
+// Token from https://github.com/ -> Settings -> Developer settings -> Personal access tokens
+final case class GithubCfg(token: String)
+
 object GithubClient extends zio.App {
 
-  // Token from https://github.com/ -> Settings -> Developer settings -> Personal access tokens
-  val token = "6dfddc6d8382cee0a8670ab89abb4725ec418253"
+  val token = "86fcf4156dd8c54952b8f34b349db3ba0a7f50e9"
 
   case class Repo(name: String, createdAt: DateTime, forkCount: Int)
 

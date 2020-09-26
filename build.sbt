@@ -7,6 +7,7 @@ val circeVersion = "0.13.0"
 val doobieVersion = "0.9.2"
 val calibanVersion = "0.9.2"
 val sttpVersion = "2.2.7"
+val zioConfigVersion = "1.0.0-RC27"
 
 enablePlugins(CodegenPlugin)
 
@@ -31,8 +32,11 @@ lazy val root = (project in file("."))
       "org.tpolecat" %% "doobie-quill" % doobieVersion,
       "com.softwaremill.sttp.client" %% "core" % sttpVersion,
       "com.softwaremill.sttp.client" %% "async-http-client-backend-zio" % sttpVersion,
-      "com.softwaremill.sttp.client" %% "circe" % sttpVersion
-      )
+      "com.softwaremill.sttp.client" %% "circe" % sttpVersion,
+      "dev.zio" %% "zio-config" % zioConfigVersion,
+      "dev.zio" %% "zio-config-typesafe" % zioConfigVersion,
+      "dev.zio" %% "zio-config-magnolia" % zioConfigVersion,
+    )
   )
 
 // See https://www.scala-sbt.org/1.x/docs/Using-Sonatype.html for instructions on how to publish to Sonatype.

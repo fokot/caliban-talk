@@ -7,6 +7,7 @@ import cats.data.Kleisli
 import cats.effect.{Blocker, ConcurrentEffect, Timer}
 import graphql.Auth.Auth
 import graphql.Transactor.TransactorService
+import graphql.configuration.Config
 import graphql.schema.Env
 import org.http4s.{HttpRoutes, StaticFile}
 import org.http4s.dsl.Http4sDsl
@@ -52,6 +53,10 @@ object GithubApp extends CatsApp {
     r => ZIO.foreach_(r.errors)(e => zio.console.putStrLn(e.toString))
   )  }
 
+  val customLayer: ZLayer[Blocking, Throwable, Config with TransactorService] =
+    configuration.live ++ ZLayer.identity[Blocking] >+>
+      (configuration.focus(_.db) ++ ZLayer.identity[Blocking] >>> Transactor.transactorLayer)
+
   override def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] =
     ZIO
       .runtime[ZEnv with TransactorService]
@@ -73,6 +78,6 @@ object GithubApp extends CatsApp {
             .useForever
         } yield ()
       )
-      .provideCustomLayer(ZLayer.succeed(DbCfg("caliban_talk", "jdbc:postgresql://localhost:5432/upstart", "admin", "1234")) ++ ZLayer.identity[Blocking] >>> Transactor.transactorLayer)
+      .provideCustomLayer(customLayer)
       .exitCode
 }

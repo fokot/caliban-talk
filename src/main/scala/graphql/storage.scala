@@ -49,6 +49,7 @@ object storage {
   implicit val repoIdEncoder = taggedTypeEncoder[RepoStorage, String]
   implicit val repoIdDecoder = taggedTypeDecoder[String, RepoStorage]
 
+  //FIXME this is not using compile time queries but I like UserStorage case class more than just User
   // remove storage suffix from table names and quote them because `user` is keyword in postgres
   object NamingStrategy extends SnakeCase {
     override def table(s: String): String =
