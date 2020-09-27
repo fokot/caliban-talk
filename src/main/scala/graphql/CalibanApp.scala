@@ -5,10 +5,11 @@ import caliban.{GraphQLRequest, Http4sAdapter}
 import caliban.wrappers.Wrapper.{ExecutionWrapper, OverallWrapper}
 import cats.data.Kleisli
 import cats.effect.{Blocker, ConcurrentEffect, Timer}
-import graphql.Auth.Auth
+import graphql.auth.Auth
 import graphql.Transactor.TransactorService
 import graphql.configuration.Config
-import graphql.schema.Env
+import graphql.github.GithubService
+import graphql.schema.{Env, EnvWithoutAuth, R}
 import org.http4s.{HttpRoutes, StaticFile}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.implicits._
@@ -16,30 +17,28 @@ import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.middleware.CORS
 import org.http4s.server.{Router, ServiceErrorHandler}
 import org.http4s.util.CaseInsensitiveString
+import sttp.client.asynchttpclient.zio.AsyncHttpClientZioBackend
 import zio._
 import zio.blocking.Blocking
 import zio.clock.Clock
-import zio.console.Console
 import zio.interop.catz._
 import zio.interop.catz.implicits._
-import zio.random.Random
 
 import scala.concurrent.ExecutionContext
 
-object GithubApp extends CatsApp {
+object CalibanApp extends CatsApp {
 
-  type F[A] = RIO[Clock with TransactorService with Console with Random, A]
-  type AuthTask[A] = RIO[Env, A]
+  type F[A] = RIO[EnvWithoutAuth, A]
 
   case class MissingToken() extends Throwable
 
   // http4s middleware that extracts a token from the request and eliminate the Auth layer dependency
   object AuthMiddleware {
-    def apply(route: HttpRoutes[AuthTask]): HttpRoutes[F] =
-      Http4sAdapter.provideSomeLayerFromRequest[Clock with TransactorService with Console with Random, Auth](
+    def apply(route: HttpRoutes[R]): HttpRoutes[F] =
+      Http4sAdapter.provideSomeLayerFromRequest[EnvWithoutAuth, Auth](
         route,
         req =>
-          ZLayer.succeed(Auth.fromToken(req.headers.get(CaseInsensitiveString("Authorization")).map(_.value)))
+          ZLayer.succeed(auth.fromToken(req.headers.get(CaseInsensitiveString("Authorization")).map(_.value)))
       )
   }
 
@@ -53,12 +52,19 @@ object GithubApp extends CatsApp {
     r => ZIO.foreach_(r.errors)(e => zio.console.putStrLn(e.toString))
   )  }
 
-  val customLayer: ZLayer[Blocking, Throwable, Config with TransactorService] =
-    ZLayer.identity[Blocking] ++ configuration.live >+> configuration.focus(_.db) >+> Transactor.transactorLayer
+  val customLayer: ZLayer[Blocking with Clock, Throwable, Config with TransactorService with GithubService] =
+    ZLayer.identity[Blocking] ++
+      ZLayer.identity[Clock] ++
+      configuration.live >+>
+      configuration.focus(_.db) >+>
+      configuration.focus(_.github) >+>
+      Transactor.transactorLayer >+>
+      AsyncHttpClientZioBackend.layer() >+>
+      github.live
 
   override def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] =
     ZIO
-      .runtime[ZEnv with TransactorService]
+      .runtime[EnvWithoutAuth]
       .flatMap(implicit runtime =>
         for {
           interpreter <- resolver.api.withWrapper(wrapper).interpreter

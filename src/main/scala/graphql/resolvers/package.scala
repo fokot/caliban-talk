@@ -4,8 +4,8 @@ import caliban.GraphQL.graphQL
 import caliban.RootResolver
 import caliban.schema.{ArgBuilder, GenericSchema}
 import graphql.schema.{Env, Mutation, Query, Subscription}
-import graphql.Auth.Auth
-import graphql.resolvers.mutations.{GCreateFork, GDeleteFork, GMutateRepo, GMutateUser}
+import graphql.auth.Auth
+import graphql.resolvers.mutations.{GCreateFork, GDeleteFork, GGithubImport, GMutateRepo, GMutateUser}
 import graphql.resolvers.{GRepo, GUser}
 import graphql.storage.{RepoId, UserId}
 import zio.{Schedule, ZIO, random}
@@ -36,7 +36,7 @@ package object resolver {
 
   private val query =
     Query(
-      ZIO.access[Auth](_.get[Auth.Service].token.getOrElse("")),
+      ZIO.access[Auth](_.get[auth.Service].token.getOrElse("")),
       in => GUser.get(in),
       in => GRepo.get(in),
       GRepo.all,
@@ -47,6 +47,7 @@ package object resolver {
     in => GMutateRepo.mutate(in.in),
     in => GCreateFork.mutate(in.in),
     in => GDeleteFork.mutate(in.in),
+    in => GGithubImport.mutate(in.in),
   )
 
   private val subscription = Subscription(

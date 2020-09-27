@@ -1,11 +1,13 @@
 package graphql
 
 import caliban.schema.Annotations.GQLDescription
-import graphql.Auth.Auth
+import graphql.auth.Auth
 import graphql.Transactor.TransactorService
+import graphql.github.{GithubImport, GithubService}
 import graphql.resolvers.mutations.GCreateFork.CreateForkOutput
-import graphql.resolvers.mutations.{GCreateFork, GDeleteFork, GMutateRepo, GMutateUser}
+import graphql.resolvers.mutations.{GCreateFork, GDeleteFork, GGithubImport, GMutateRepo, GMutateUser}
 import graphql.resolvers.mutations.GDeleteFork.DeleteForkOutput
+import graphql.resolvers.mutations.GGithubImport.GithubImportOutput
 import graphql.resolvers.mutations.GMutateRepo.MutateRepoOutput
 import graphql.resolvers.mutations.GMutateUser.MutateUserOutput
 import graphql.storage.{RepoId, UserId}
@@ -14,11 +16,12 @@ import zio.console.Console
 import zio.query.ZQuery
 import zio.random.Random
 import zio.stream.ZStream
-import zio.{RIO, Task}
+import zio.RIO
 
 object schema {
 
-  type Env = Auth with Clock with TransactorService with Console with Random
+  type EnvWithoutAuth = Clock with TransactorService with Console with Random with GithubService
+  type Env = EnvWithoutAuth with Auth
 
   type R[A] = RIO[Env, A]
 
@@ -40,6 +43,7 @@ object schema {
     mutateRepo: GMutateRepo.Input => R[MutateRepoOutput],
     createFork: GCreateFork.Input => R[CreateForkOutput],
     deleteFork: GDeleteFork.Input => R[DeleteForkOutput],
+    githubImport: GGithubImport.Input => R[GithubImportOutput],
   )
 
   case class Subscription(

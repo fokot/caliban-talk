@@ -3,7 +3,7 @@ package graphql
 import zio.{Has, RIO, ZIO}
 import io.circe.generic.auto._
 
-object Auth {
+object auth {
 
   object AuthException extends Exception("Permission denied")
 
@@ -30,7 +30,7 @@ object Auth {
   val isViewer: Authorized = hasRole(Role.VIEWER)
 
 
-  type Auth = Has[Auth.Service]
+  type Auth = Has[auth.Service]
 
   trait Service {
     def token: Option[String]

@@ -1,11 +1,12 @@
 package graphql
 
+import cats.implicits.catsSyntaxApply
 import cats.{Monad, MonadError}
 import doobie.ConnectionIO
 import doobie.implicits._
 import doobie.quill.DoobieContext
 import zio.interop.catz.taskConcurrentInstance
-import graphql.Auth.{Auth, AuthUser}
+import graphql.auth.{Auth, AuthUser}
 import graphql.Transactor.TransactorService
 import io.getquill
 import io.getquill.SnakeCase
@@ -78,7 +79,7 @@ object storage {
 
   // transact and provide current authorised user
   def transactUser[A](c: AuthUser => ConnectionIO[A]): RIO[TransactorService with Auth, A] =
-    Auth.isAuthenticated.flatMap(u => transact(c(u)))
+    auth.isAuthenticated.flatMap(u => transact(c(u)))
 
   type R[A] = RIO[TransactorService, A]
 
@@ -212,4 +213,19 @@ object storage {
     )
 
 
+  def saveImport(users: Iterable[UserStorage], repos: Iterable[RepoStorage], forks: Iterable[ForkStorage]): RIO[TransactorService, Unit] =
+    transact(
+      run(
+        quote(
+          liftQuery(users.toList).foreach(u => query[UserStorage].insert(u).onConflictIgnore)
+        )
+      )
+        *>
+      run(
+        liftQuery(repos).foreach(r => query[RepoStorage].insert(r).onConflictIgnore)
+      ) *>
+      run(
+        liftQuery(forks).foreach(f => query[ForkStorage].insert(f).onConflictIgnore)
+      )
+    ).unit
 }
