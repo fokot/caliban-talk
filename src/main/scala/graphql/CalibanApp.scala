@@ -69,7 +69,7 @@ object CalibanApp extends CatsApp {
         for {
           interpreter <- resolver.api.withWrapper(wrapper).interpreter
           blocker     <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext)
-          _ <- BlazeServerBuilder[F](ExecutionContext.global)(ConcurrentEffect[Task].asInstanceOf[ConcurrentEffect[F]], Timer[Task].asInstanceOf[Timer[F]])
+          _ <- BlazeServerBuilder[F](ExecutionContext.global)
             .withServiceErrorHandler(errorHandler)
             .bindHttp(8088, "localhost")
             .withHttpApp(Router[F](
