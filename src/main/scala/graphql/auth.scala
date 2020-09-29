@@ -23,7 +23,7 @@ object auth {
 
   type Authorized = RIO[Auth, AuthUser]
 
-  val isAuthenticated: Authorized = ZIO.accessM[Auth](r => ZIO.succeed(r.get.user).someOrFail(new Exception("not a valid token")))
+  val isAuthenticated: Authorized = ZIO.accessM[Auth](r => ZIO.succeed(r.get.user).someOrFail(new Exception("Invalid token")))
 
   /**
    * Will succeed if user has at least one of specified roles
