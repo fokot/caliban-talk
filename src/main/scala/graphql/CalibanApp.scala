@@ -1,7 +1,7 @@
 package graphql
 
 import caliban.execution.ExecutionRequest
-auth import caliban.Http4sAdapter
+import caliban.Http4sAdapter
 import caliban.wrappers.Wrapper.ExecutionWrapper
 import cats.data.Kleisli
 import cats.effect.Blocker
