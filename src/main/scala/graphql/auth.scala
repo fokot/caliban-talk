@@ -1,7 +1,9 @@
 package graphql
 
+import io.circe.Decoder
 import zio.{Has, RIO, ZIO}
-import io.circe.generic.auto._
+import io.circe.generic.semiauto._
+import io.circe.generic.extras.semiauto.deriveEnumerationDecoder
 
 object auth {
 
@@ -16,9 +18,12 @@ object auth {
 
   case class AuthUser(name: String, roles: List[Role])
 
+  implicit val decoderAuthUser: Decoder[AuthUser] = deriveDecoder[AuthUser]
+  implicit val decoderRole: Decoder[Role] = deriveEnumerationDecoder[Role]
+
   type Authorized = RIO[Auth, AuthUser]
 
-  val isAuthenticated: Authorized = ZIO.accessM[Auth](r => ZIO.getOrFail(r.get.user))
+  val isAuthenticated: Authorized = ZIO.accessM[Auth](r => ZIO.succeed(r.get.user).someOrFail(new Exception("not a valid token")))
 
   /**
    * Will succeed if user has at least one of specified roles

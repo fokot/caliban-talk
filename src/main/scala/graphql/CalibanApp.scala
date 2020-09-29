@@ -1,10 +1,10 @@
 package graphql
 
 import caliban.execution.ExecutionRequest
-import caliban.{GraphQLRequest, Http4sAdapter}
-import caliban.wrappers.Wrapper.{ExecutionWrapper, OverallWrapper}
+auth import caliban.Http4sAdapter
+import caliban.wrappers.Wrapper.ExecutionWrapper
 import cats.data.Kleisli
-import cats.effect.{Blocker, ConcurrentEffect, Timer}
+import cats.effect.Blocker
 import graphql.auth.Auth
 import graphql.Transactor.TransactorService
 import graphql.configuration.Config
@@ -22,7 +22,6 @@ import zio._
 import zio.blocking.Blocking
 import zio.clock.Clock
 import zio.interop.catz._
-import zio.interop.catz.implicits._
 
 import scala.concurrent.ExecutionContext
 

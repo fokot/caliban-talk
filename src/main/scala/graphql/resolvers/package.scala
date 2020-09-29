@@ -37,7 +37,7 @@ package object resolver {
   private val query =
     Query(
       ZIO.access[Auth](_.get[auth.Service].token.getOrElse("")),
-      in => GUser.get(in),
+      in => auth.isViewer *> GUser.get(in),
       in => GRepo.get(in),
       GRepo.all,
     )
