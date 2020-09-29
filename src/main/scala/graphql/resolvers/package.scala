@@ -37,13 +37,15 @@ package object resolver {
   private val query =
     Query(
       ZIO.access[Auth](_.get[auth.Service].token.getOrElse("")),
-      in => auth.isViewer *> GUser.get(in),
+      in => GUser.get(in),
+//      in => auth.isViewer *> GUser.get(in),
       in => GRepo.get(in),
       GRepo.all,
     )
 
   private val mutation = Mutation(
     in => GMutateUser.mutate(in.in),
+//    in => auth.isEditor *> GMutateUser.mutate(in.in),
     in => GMutateRepo.mutate(in.in),
     in => GCreateFork.mutate(in.in),
     in => GDeleteFork.mutate(in.in),
