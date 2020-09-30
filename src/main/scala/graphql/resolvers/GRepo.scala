@@ -7,15 +7,21 @@ import zio.ZIO
 
 object GRepo {
 
+  // function made so I can `tap` on it
+  def getForks(id: RepoId) =
+    storage.getForksOf(id).tap(_ => zio.console.putStrLn("get forks"))
+
   def toGQL(r: RepoStorage): R[Repo] =
-    storage.getForksOf(r.id).memoize.map(forks =>
+    getForks(r.id).memoize.map(forks =>
       Repo(
         r.id,
         r.name,
         GUser.byId(r.owner).map(_.login + "/" + r.name),
         GUser.byId(r.owner),
+//        getForks(r.id).map(_.size),
+//        getForks(r.id).flatMap(ZIO.foreach(_)(toGQL)),
         forks.map(_.size),
-        forks.flatMap(ZIO.foreach(_)(toGQL))
+        forks.flatMap(ZIO.foreach(_)(toGQL)),
       )
     )
 

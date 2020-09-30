@@ -38,6 +38,7 @@ package object resolver {
     Query(
       ZIO.access[Auth](_.get[auth.Service].token.getOrElse("")),
       in => GUser.get(in),
+      // if uncommented user token {"name": "String", "roles": ["VIEWER"]} in graphiql
 //      in => auth.isViewer *> GUser.get(in),
       in => GRepo.get(in),
       GRepo.all,

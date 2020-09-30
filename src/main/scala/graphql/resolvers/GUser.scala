@@ -4,7 +4,7 @@ import graphql.resolver.RequestId
 import graphql.schema.{Env, Q, R, User, UserInput}
 import graphql.storage
 import graphql.storage.{UserId, UserStorage}
-import zio.{Chunk, ZIO}
+import zio.Chunk
 import zio.query.{DataSource, ZQuery}
 
 object GUser {

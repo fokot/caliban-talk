@@ -1,9 +1,11 @@
 package example
 
-import zio.console.{getStrLn, putStrLn}
+import java.io.IOException
+
+import zio.console.{Console, getStrLn, putStrLn}
 import zio.{ExitCode, Has, RIO, Task, URIO, ZIO, ZLayer}
 
-object ZIOExamples extends zio.App {
+object ZIOFirstExample extends zio.App {
 
   object weather {
     type WeatherService = Has[Service]
@@ -34,7 +36,7 @@ object ZIOExamples extends zio.App {
 
   }
 
-  val getCity = putStrLn("Write down city") *> getStrLn
+  val getCity: ZIO[Console, IOException, String] = putStrLn("Write down city") *> getStrLn
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
     (for {
@@ -44,5 +46,7 @@ object ZIOExamples extends zio.App {
     } yield city)
       .repeatWhile(_.nonEmpty)
       .exitCode
+//      .provideLayer(weather.live ++ Console.live)
+//      .provideSomeLayer[Console](weather.live)
 
 }
