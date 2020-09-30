@@ -3,6 +3,10 @@ package example
 import magnolia._
 import scala.language.experimental.macros
 
+/**
+ * Example of typeclass derivation library Magnolia https://propensive.com/opensource/magnolia
+ * Example taken from https://propensive.com/opensource/magnolia/tutorial
+ */
 object MagnoliaExample extends App {
 
   trait Show[T] {
