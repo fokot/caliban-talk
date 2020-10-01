@@ -10,6 +10,7 @@ import scala.language.experimental.macros
  */
 object MagnoliaExample extends App {
 
+  // Our typeclass
   trait Show[T] {
     def show(value: T): String
   }
@@ -20,6 +21,8 @@ object MagnoliaExample extends App {
     }
   }
 
+  // Magnolia derivation for our typeclass
+  // We need to provide way to derive typeclass for case classes and for sealed traits
   object MyDerivation {
     type Typeclass[T] = Show[T]
 
