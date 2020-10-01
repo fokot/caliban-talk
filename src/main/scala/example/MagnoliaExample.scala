@@ -14,6 +14,12 @@ object MagnoliaExample extends App {
     def show(value: T): String
   }
 
+  object Show {
+    def instance[T](f: T => String): Show[T] = new Show[T] {
+      override def show(value: T): String = f(value)
+    }
+  }
+
   object MyDerivation {
     type Typeclass[T] = Show[T]
 
@@ -36,14 +42,14 @@ object MagnoliaExample extends App {
     implicit def gen[T]: Typeclass[T] = macro Magnolia.gen[T]
   }
 
-  implicit val showString: Show[String] = new Show[String] {
-    override def show(value: String): String = value
-  }
+  // we need to provide typeclass instance for primitive types
+  implicit val showString: Show[String] = Show.instance(identity)
+  implicit val showInt: Show[Int] = Show.instance(_.toString)
 
-  case class A(f: String)
+  case class A(f: String, i: Int)
 
-  val x = MyDerivation.gen[A]
+  val showA = MyDerivation.gen[A]
 
-  println(x.show(A("asdf")))
+  println(showA.show(A("asdf", 123)))
 
 }
