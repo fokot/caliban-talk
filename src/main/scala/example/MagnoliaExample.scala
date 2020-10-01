@@ -4,6 +4,7 @@ import magnolia._
 import scala.language.experimental.macros
 
 /**
+ * Magnolia is used in caliban to derive typeclasses from schema case classes
  * Example of typeclass derivation library Magnolia https://propensive.com/opensource/magnolia
  * Example taken from https://propensive.com/opensource/magnolia/tutorial
  */
