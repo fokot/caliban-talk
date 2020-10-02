@@ -11,8 +11,11 @@ Presentation can be found [here](https://docs.google.com/presentation/d/1TZLCPy2
 * [doobie](https://tpolecat.github.io/doobie) and [quill](https://getquill.io) - database
 * [sttp](https://sttp.softwaremill.com) - http client
 * [shapeless](https://github.com/milessabin/shapeless) - just for type tags
+
+<!--
 * [testcontainers-scala](https://github.com/testcontainers/testcontainers-scala) - postgresql in docker container in tests
 * [flyway](https://flywaydb.org) - migrations
+-->
 
 ## Running application
 
