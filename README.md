@@ -2,6 +2,8 @@
 
 Slides can be found [here](https://docs.google.com/presentation/d/1TZLCPy2VggDhar_l5yO3LpkAHMzm3aLUZ1tUyaSoJqM)
 
+In this application you can create `users`, `repos` and `forks` and also import them from `Github`.
+
 ## Running application
 
 Application is in `graphql` package.
