@@ -1,4 +1,4 @@
-# Example Caliban app for a talk
+# Example Caliban app for the talk
 
 Slides can be found [here](https://docs.google.com/presentation/d/1TZLCPy2VggDhar_l5yO3LpkAHMzm3aLUZ1tUyaSoJqM)
 
