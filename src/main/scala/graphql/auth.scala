@@ -1,9 +1,9 @@
 package graphql
 
-import io.circe.Decoder
+import io.circe.{Codec, Decoder}
 import zio.{Has, RIO, ZIO}
 import io.circe.generic.semiauto._
-import io.circe.generic.extras.semiauto.deriveEnumerationDecoder
+import io.circe.generic.extras.semiauto.deriveEnumerationCodec
 
 object auth {
 
@@ -18,8 +18,8 @@ object auth {
 
   case class AuthUser(name: String, roles: List[Role])
 
-  implicit val decoderAuthUser: Decoder[AuthUser] = deriveDecoder[AuthUser]
-  implicit val decoderRole: Decoder[Role] = deriveEnumerationDecoder[Role]
+  implicit val codecAuthUser: Codec[AuthUser] = deriveCodec[AuthUser]
+  implicit val codecRole: Codec[Role] = deriveEnumerationCodec[Role]
 
   type Authorized = RIO[Auth, AuthUser]
 

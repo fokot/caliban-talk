@@ -6,7 +6,7 @@ import caliban.wrappers.Wrapper.ExecutionWrapper
 import cats.data.Kleisli
 import cats.effect.Blocker
 import graphql.auth.Auth
-import graphql.Transactor.TransactorService
+import graphql.Transactor.{DataSourceService, TransactorService}
 import graphql.configuration.Config
 import graphql.github.GithubService
 import graphql.schema.{Env, EnvWithoutAuth, R}
@@ -46,18 +46,16 @@ object CalibanApp extends CatsApp {
   import dsl._
   val errorHandler: ServiceErrorHandler[F] = _ => { case MissingToken() => Forbidden() }
 
-  // error logger wrapper
-  val wrapper = ExecutionWrapper[Env] { process => (request: ExecutionRequest) => process(request).tap(
-    r => ZIO.foreach_(r.errors)(e => zio.console.putStrLn(e.toString))
-  )  }
 
-  val customLayer: ZLayer[Blocking with Clock, Throwable, Config with TransactorService with GithubService] =
+  val customLayer: ZLayer[Blocking with Clock, Throwable, Config with DataSourceService with TransactorService with GithubService] =
     ZLayer.identity[Blocking] ++
       ZLayer.identity[Clock] ++
       configuration.live >+>
       configuration.focus(_.db) >+>
+  // uncomment this and comment `dockerLayer` to run against local postres
+//      Transactor.transactorLayer >+>
+      Transactor.dockerLayer >+>
       configuration.focus(_.github) >+>
-      Transactor.transactorLayer >+>
       AsyncHttpClientZioBackend.layer() >+>
       github.live
 
@@ -66,7 +64,8 @@ object CalibanApp extends CatsApp {
       .runtime[EnvWithoutAuth]
       .flatMap(implicit runtime =>
         for {
-          interpreter <- resolver.api.withWrapper(wrapper).interpreter
+          _ <- Transactor.runFlywayMigrations()
+          interpreter <- resolver.interpreter
           blocker     <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext)
           _ <- BlazeServerBuilder[F](ExecutionContext.global)
             .withServiceErrorHandler(errorHandler)

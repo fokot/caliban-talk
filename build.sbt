@@ -3,6 +3,7 @@ ThisBuild / version          := "0.1.0-SNAPSHOT"
 ThisBuild / organization     := "com.example"
 ThisBuild / organizationName := "example"
 
+val zioVersion = "1.0.1"
 val circeVersion = "0.13.0"
 val doobieVersion = "0.9.2"
 val calibanVersion = "0.9.2"
@@ -13,11 +14,15 @@ enablePlugins(CodegenPlugin)
 
 addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full)
 
+val zioTestFramework = new TestFramework("zio.test.sbt.ZTestFramework")
+
 lazy val root = (project in file("."))
   .settings(
     name := "caliban-talk",
     libraryDependencies ++= Seq(
-      "dev.zio" %% "zio" % "1.0.1",
+      "dev.zio" %% "zio" % zioVersion,
+      "dev.zio" %% "zio-test" % zioVersion % Test,
+      "dev.zio" %% "zio-test-sbt" % zioVersion % Test,
       "dev.zio" %% "zio-interop-cats" % "2.1.4.0",
       "com.github.ghostdogpr" %% "caliban" % calibanVersion,
       "com.github.ghostdogpr" %% "caliban-http4s" % calibanVersion,
@@ -26,6 +31,7 @@ lazy val root = (project in file("."))
       "io.circe" %% "circe-parser" % circeVersion,
       "io.circe" %% "circe-generic" % circeVersion,
       "io.circe" %% "circe-generic-extras" % circeVersion,
+      "io.circe" %% "circe-literal" % circeVersion,
       "org.tpolecat" %% "doobie-core" % doobieVersion,
       "org.tpolecat" %% "doobie-postgres" % doobieVersion,
       "org.tpolecat" %% "doobie-postgres-circe" % doobieVersion,
@@ -37,7 +43,9 @@ lazy val root = (project in file("."))
       "dev.zio" %% "zio-config" % zioConfigVersion,
       "dev.zio" %% "zio-config-typesafe" % zioConfigVersion,
       "dev.zio" %% "zio-config-magnolia" % zioConfigVersion,
-    )
+      "com.dimafeng" %% "testcontainers-scala" % "0.38.1",
+      "org.testcontainers" % "postgresql" % "1.14.3",
+      "org.flywaydb" % "flyway-core" % "6.5.5",
+    ),
+    testFrameworks += zioTestFramework
   )
-
-// See https://www.scala-sbt.org/1.x/docs/Using-Sonatype.html for instructions on how to publish to Sonatype.

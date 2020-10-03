@@ -1,12 +1,14 @@
 package graphql
 
 import cats.effect.Blocker
+import com.dimafeng.testcontainers.PostgreSQLContainer
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import doobie.hikari.HikariTransactor
 import doobie.util.transactor.{Transactor => DoobieTransactor}
+import org.flywaydb.core.Flyway
 import zio.blocking.Blocking
 import zio.interop.catz._
-import zio.{Has, Task, UIO, ZIO, ZLayer}
+import zio.{Has, RIO, Task, UIO, ZIO, ZLayer, ZManaged}
 
 final case class DbCfg(schema: String, url: String, username: String, password: String)
 
@@ -40,7 +42,42 @@ object Transactor {
       }
     } yield transactor)
 
-  def transactorLayer: ZLayer[Blocking with Has[DbCfg], Throwable, TransactorService] =
-    (ZLayer.identity[Blocking] ++ hikariDataSourceLayer) >>> hikariTransactorLayer
+  def transactorLayer: ZLayer[Blocking with Has[DbCfg], Throwable, DataSourceService with TransactorService] =
+    (ZLayer.identity[Blocking] ++ hikariDataSourceLayer) >+> hikariTransactorLayer
+
+  def runFlywayMigrations(migrationsDir: String = "migration"): RIO[DataSourceService, Unit] =
+    ZIO.accessM[DataSourceService](
+      r =>
+        ZIO.effect {
+          val fw = Flyway.configure().dataSource(r.get).schemas(r.get.getSchema).locations(migrationsDir).load()
+          fw.migrate()
+        }.unit
+    )
+
+  // CONTAINER LAYER
+
+  def cfgFromContainer(container: PostgreSQLContainer) = {
+    val cfg = new HikariConfig()
+    cfg.setDriverClassName(container.driverClassName)
+    cfg.setJdbcUrl(container.jdbcUrl)
+    cfg.setUsername(container.username)
+    cfg.setPassword(container.password)
+    cfg.setSchema("public")
+    cfg
+  }
+
+  val containerLayer: ZLayer[Any, Throwable, Has[PostgreSQLContainer]] = ZLayer.fromManaged(ZManaged.makeEffect {
+    val container: PostgreSQLContainer = PostgreSQLContainer(dockerImageNameOverride = "postgres:alpine")
+    container.start()
+    container
+  }(_.stop()))
+
+  val dataSourceLayer: ZLayer[Has[PostgreSQLContainer], Throwable, Has[HikariDataSource]] =
+    ZLayer.fromAcquireRelease(ZIO.accessM[Has[PostgreSQLContainer]](r => ZIO.effect(new HikariDataSource(cfgFromContainer(r.get)))))(
+      ds => UIO(ds.close())
+    )
+
+  val dockerLayer: ZLayer[Blocking, Throwable, DataSourceService with TransactorService] =
+    (ZLayer.identity[Blocking] ++ (containerLayer >>> dataSourceLayer)) >+> Transactor.hikariTransactorLayer
 
 }

@@ -2,7 +2,9 @@ package graphql
 
 import caliban.GraphQL.graphQL
 import caliban.RootResolver
+import caliban.execution.ExecutionRequest
 import caliban.schema.{ArgBuilder, GenericSchema}
+import caliban.wrappers.Wrapper.ExecutionWrapper
 import graphql.schema.{Env, Mutation, Query, Subscription}
 import graphql.auth.Auth
 import graphql.resolvers.mutations.{GCreateFork, GDeleteFork, GGithubImport, GMutateRepo, GMutateUser}
@@ -64,5 +66,12 @@ package object resolver {
   )
 
   val api = graphQL(RootResolver(query, mutation, subscription))
+
+  // error logger wrapper
+  val wrapper = ExecutionWrapper[Env] { process => (request: ExecutionRequest) => process(request).tap(
+    r => ZIO.foreach_(r.errors)(e => zio.console.putStrLn(e.toString))
+  )  }
+
+  val interpreter = api.withWrapper(wrapper).interpreter
 
 }

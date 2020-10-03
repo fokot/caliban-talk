@@ -34,6 +34,13 @@ object github {
       new LiveService(_, _)
     )
 
+  val dummy: ZLayer[Any, Nothing, GithubService] = {
+    ZLayer.succeed(new Service {
+      override def importFromGithub(query: String): RIO[Clock with Console, (Set[UserStorage], Set[RepoStorage], Set[ForkStorage])] =
+        ZIO.succeed((Set.empty, Set.empty, Set.empty))
+    })
+  }
+
   class LiveService(config: GithubCfg, sttpClient: SttpClient.Service) extends Service {
     /* https://developer.github.com/v4/explorer/
 
