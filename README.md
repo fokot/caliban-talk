@@ -13,7 +13,7 @@ To start server
 * open [http://localhost:8088/graphiql](http://localhost:8088/graphiql)
 
 If you want to run it against local postgres
-* go to `CalinaApp` and setup `customLayer`
+* go to `CalibanApp` and setup `customLayer`
 * setup db in `application.conf` or overwrite it `env.conf`
 
 If you enable authorization in `graphql.package.resolver` and you can test it by inputting token
