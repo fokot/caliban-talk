@@ -179,6 +179,6 @@ trait GQLTestBase extends DefaultRunnableSpec {
 
   def spec: Spec[TestEnvironment, TestFailure[Throwable], TestSuccess] =
     Spec
-      .suite(getClass.getSimpleName, EmbeddedPostgresLayer.withSchema *> tests.map(_.toVector).toManaged_, Sequential.some)
+      .suite(getClass.getSimpleName.stripSuffix("$"), EmbeddedPostgresLayer.withSchema *> tests.map(_.toVector).toManaged_, Sequential.some)
       .provideCustomLayerShared(testLayer)
 }

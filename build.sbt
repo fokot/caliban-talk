@@ -3,12 +3,12 @@ ThisBuild / version          := "0.1.0-SNAPSHOT"
 ThisBuild / organization     := "com.example"
 ThisBuild / organizationName := "example"
 
-val zioVersion = "1.0.1"
+val zioVersion = "1.0.3"
 val circeVersion = "0.13.0"
 val doobieVersion = "0.9.2"
 val calibanVersion = "0.9.2"
-val sttpVersion = "2.2.7"
-val zioConfigVersion = "1.0.0-RC27"
+val sttpVersion = "2.2.9"
+val zioConfigVersion = "1.0.0-RC28"
 
 enablePlugins(CodegenPlugin)
 
@@ -23,7 +23,7 @@ lazy val root = (project in file("."))
       "dev.zio" %% "zio" % zioVersion,
       "dev.zio" %% "zio-test" % zioVersion % Test,
       "dev.zio" %% "zio-test-sbt" % zioVersion % Test,
-      "dev.zio" %% "zio-interop-cats" % "2.1.4.0",
+      "dev.zio" %% "zio-interop-cats" % "2.2.0.1",
       "com.github.ghostdogpr" %% "caliban" % calibanVersion,
       "com.github.ghostdogpr" %% "caliban-http4s" % calibanVersion,
       "com.github.ghostdogpr" %% "caliban-client" % calibanVersion,
@@ -43,9 +43,9 @@ lazy val root = (project in file("."))
       "dev.zio" %% "zio-config" % zioConfigVersion,
       "dev.zio" %% "zio-config-typesafe" % zioConfigVersion,
       "dev.zio" %% "zio-config-magnolia" % zioConfigVersion,
-      "com.dimafeng" %% "testcontainers-scala" % "0.38.1",
+      "com.dimafeng" %% "testcontainers-scala" % "0.38.4",
       "org.testcontainers" % "postgresql" % "1.14.3",
-      "org.flywaydb" % "flyway-core" % "6.5.5",
+      "org.flywaydb" % "flyway-core" % "7.0.2",
     ),
     testFrameworks += zioTestFramework
   )

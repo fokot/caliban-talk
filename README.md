@@ -31,7 +31,7 @@ to top right corner in graphiql e.g. `{"name": "String", "roles": ["VIEWER"]}`
 * [testcontainers-scala](https://github.com/testcontainers/testcontainers-scala) - postgresql in docker container in tests
 * [flyway](https://flywaydb.org) - migrations
 
-## GraphQl tests
+## GraphQL tests
 Tests are written in markdown files. Single file represent single request. One directory is a test suite.
 Requests/files are executes sequentially ordered by file names. To create test you need only extend 
 `GQLTestBase` as it is done in [UserTest](src/test/scala/graphql/UserTest.scala). You can store values to 
