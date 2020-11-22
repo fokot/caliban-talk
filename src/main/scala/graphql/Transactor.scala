@@ -6,6 +6,7 @@ import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import doobie.hikari.HikariTransactor
 import doobie.util.transactor.{Transactor => DoobieTransactor}
 import org.flywaydb.core.Flyway
+import org.testcontainers.utility.DockerImageName
 import zio.blocking.Blocking
 import zio.interop.catz._
 import zio.{Has, RIO, Task, UIO, ZIO, ZLayer, ZManaged}
@@ -67,7 +68,7 @@ object Transactor {
   }
 
   val containerLayer: ZLayer[Any, Throwable, Has[PostgreSQLContainer]] = ZLayer.fromManaged(ZManaged.makeEffect {
-    val container: PostgreSQLContainer = PostgreSQLContainer(dockerImageNameOverride = "postgres:alpine")
+    val container: PostgreSQLContainer = PostgreSQLContainer(dockerImageNameOverride = DockerImageName.parse("postgres:alpine"))
     container.start()
     container
   }(_.stop()))

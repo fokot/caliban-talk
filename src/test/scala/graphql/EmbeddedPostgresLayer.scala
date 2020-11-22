@@ -17,11 +17,11 @@ object EmbeddedPostgresLayer {
   lazy val cfgLocal = {
     val cfg = new HikariConfig()
     cfg.setDriverClassName("org.postgresql.Driver")
-    cfg.setJdbcUrl("jdbc:postgresql://localhost:5432/upstart?currentSchema=rar")
+    cfg.setJdbcUrl("jdbc:postgresql://localhost:5432/test?currentSchema=caliban-talk")
 //    cfg.setJdbcUrl("jdbc:postgresql://localhost/postgres")
-    cfg.setSchema("rar")
-    cfg.setUsername("admin")
-    cfg.setPassword("1234")
+    cfg.setSchema("test")
+    cfg.setUsername("test")
+    cfg.setPassword("test")
     cfg
   }
 

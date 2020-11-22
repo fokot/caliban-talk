@@ -170,7 +170,10 @@ object github {
           searchQuery(query).toRequest(uri"${config.graphqlUrl}")
             .header("Authorization", s"bearer ${config.token}")
       ).map(_.body).absolve.map(toGithubImport)
-        .tapBoth(_ => putStrLn("import fail"), _ => putStrLn("import succeed"))
+        .tapBoth(
+          _ => putStrLn("Import failed!"),
+          {case (users, repos, forks) => putStrLn(s"Import succeed!\nusers: ${users.size}\nrepos: ${repos.size}\nforks: ${forks.size}")}
+        )
         .retry(schedule)
         .timeoutFail(new Exception(s"Github import for $query timed out"))(20.seconds)
 
